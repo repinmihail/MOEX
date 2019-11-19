@@ -1,0 +1,11 @@
+library(httr)
+library(rjson)
+
+test_url <- "http://iss.moex.com/iss/history/engines/stock/markets/index/boards/SNDX/securities/IMOEX/candles.json?from=2019-01-01&till=2019-05-28&interval=24&start=0"
+
+response <- GET(test_url)
+
+content(response, as='text')
+
+response_body <- content(response, as='text')
+MOEX <- fromJSON(response_body)
