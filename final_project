@@ -1,0 +1,30 @@
+library(httr)
+library(jsonlite)
+library(ggplot2)
+library(lintr)
+
+links <- c("http://iss.moex.com/iss/history/engines/stock/markets/index/boards/SNDX/securities/IMOEX/candles.json?from=2019-01-01&till=2019-05-28&interval=24&start=0",
+           "http://iss.moex.com/iss/history/engines/stock/markets/index/boards/SNDX/securities/IMOEX/candles.json?from=2019-05-29&till=2019-10-01&interval=24&start=0",
+           "http://iss.moex.com/iss/history/engines/stock/markets/index/boards/SNDX/securities/IMOEX/candles.json?from=2019-10-01&till=2019-11-19&interval=24&start=0")
+
+resulting_df <- data.frame()
+
+for (link in links) {
+  response <- GET(link)
+  response_body <- content(response, as = "text")
+  MOEX <- fromJSON(response_body)
+  MOEXdf <- data.frame(MOEX$history$data)
+  colnames(MOEXdf) <- MOEX$history$columns
+  resulting_df <- rbind(resulting_df, MOEXdf)
+}
+
+resulting_df$CLOSE <- as.numeric(as.character(resulting_df$CLOSE))
+
+axes <- ggplot(data = resulting_df, mapping = aes(x = CLOSE))
+axes + geom_histogram(aes(y = ..density..),
+                      fill = "yellowgreen", color = "black") +
+  geom_density(aes(fill = CLOSE), colour = "red", linetype = 2, alpha = 0.6) +
+  labs(title = "Probability density function of the iMOEX price",
+       x = "Price, rub",
+       y = "Density") +
+  theme_dark()
